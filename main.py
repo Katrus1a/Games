@@ -13,6 +13,7 @@ Blue_color=(10, 163, 112)
 Violet_color=(116, 38, 240)
 Black_color=(0, 0, 0)
 Red_color=(255, 0, 0)
+Gray_color = (105, 105, 105)
 margin=1
 
 screen=pygame.display.set_mode(size)
@@ -29,6 +30,8 @@ score_font=pygame.font.SysFont('Arial', 30)
 
 start_time=pygame.time.get_ticks()
 
+food_blink=True
+
 def print_score(score):
     text=score_font.render("Score:"+str(score), True, White_color)
     screen.blit(text, [10, 10])
@@ -39,9 +42,17 @@ def print_time():
     screen.blit(time_text, [size[0]-200, 10])
 
 def draw_snake(snake_size, snake_pixels):
-    for pixel in snake_pixels:
-        pygame.draw.rect(screen, Violet_color, [pixel[0], pixel[1]+info_panel_height, snake_size, snake_size])
-
+    length=len(snake_pixels)
+    for i, pixel in enumerate(snake_pixels):
+        gradient_color=(
+            Violet_color[0]+(White_color[0]-Violet_color[0])*i//length,
+            Violet_color[1]+(White_color[1]-Violet_color[1])*i//length,
+            Violet_color[2]+(White_color[2]-Violet_color[2])*i//length
+        )
+        shadow_offset=3
+        pygame.draw.rect(screen, Gray_color, [pixel[0]+shadow_offset, pixel[1]+info_panel_height+shadow_offset, snake_size, snake_size])
+        pygame.draw.rect(screen, Black_color, [pixel[0], pixel[1]+info_panel_height, snake_size, snake_size])
+        pygame.draw.rect(screen, gradient_color, [pixel[0]+2, pixel[1]+info_panel_height+2, snake_size-4, snake_size-4])
 def draw_grid():
     for row in range(Block_count):
         for column in range(Block_count):
@@ -55,8 +66,8 @@ def game_over_screen():
     screen.fill(Black_color)
     game_over_message=message_font.render("Game Over!", True, Red_color)
     try_again_message=score_font.render("Press R to Try Again", True, White_color)
-    screen.blit(game_over_message, [size[0] / 3, size[1] / 3])
-    screen.blit(try_again_message, [size[0] / 3, size[1] / 2])
+    screen.blit(game_over_message, [size[0]/3, size[1]/3])
+    screen.blit(try_again_message, [size[0]/3, size[1]/2])
     pygame.display.update()
 
     while True:
@@ -74,12 +85,13 @@ def game_over_screen():
 def run_game():
     global snake_speed  
     global start_time
+    global food_blink
     start_time=pygame.time.get_ticks()  
     game_over=False
     game_close=False
 
-    x=size[0] / 2
-    y=(size[1]-info_panel_height) / 2 
+    x=size[0]/2
+    y=(size[1]-info_panel_height)/2 
 
     x_speed=0
     y_speed=0
@@ -87,8 +99,8 @@ def run_game():
     snake_pixels=[]
     snake_length=1
 
-    target_x=round(random.randrange(0, size[0]-snake_size) / 20.0)*20.0
-    target_y=round(random.randrange(0, size[1]-info_panel_height-snake_size) / 20.0)*20.0
+    target_x=round(random.randrange(0, size[0]-snake_size)/20.0)*20.0
+    target_y=round(random.randrange(0, size[1]-info_panel_height-snake_size)/20.0)*20.0
 
     while not game_over:
 
@@ -126,7 +138,14 @@ def run_game():
 
         screen.fill(Frame_color)
         draw_grid()
-        pygame.draw.rect(screen, Red_color, [target_x, target_y+info_panel_height, snake_size, snake_size])
+
+        if food_blink:
+            food_color=Red_color
+        else:
+            food_color=White_color
+
+        pygame.draw.rect(screen, food_color, [target_x, target_y + info_panel_height, snake_size, snake_size])
+        food_blink=not food_blink
 
         snake_pixels.append([x, y])
 
@@ -143,9 +162,9 @@ def run_game():
 
         pygame.display.update()
 
-        if x==target_x and y==target_y+info_panel_height:
-            target_x=round(random.randrange(0, size[0]-snake_size) / 20.0)*20.0
-            target_y=round(random.randrange(0, size[1]-info_panel_height-snake_size) / 20.0)*20.0
+        if abs(x-target_x)<Block_size and abs(y-target_y-info_panel_height)<Block_size:
+            target_x=round(random.randrange(0, size[0]-snake_size)/20.0)*20.0
+            target_y=round(random.randrange(0, size[1]-info_panel_height-snake_size)/20.0)*20.0
             snake_length+=1
 
         clock.tick(snake_speed)
