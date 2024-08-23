@@ -213,7 +213,7 @@ def run_game(player_name):
 
         pygame.display.update()
 
-        if abs(x-target_x)<Block_size and abs(y-target_y-info_panel_height)<Block_size:
+        if x==target_x and y==target_y:
             target_x=round(random.randrange(0, size[0]-snake_size)/20.0)*20.0
             target_y=round(random.randrange(0, size[1]-info_panel_height-snake_size)/20.0)*20.0
             snake_length+=1
