@@ -1,5 +1,13 @@
 import tkinter as tk
 from tkinter import messagebox
+import sqlite3
+
+conn=sqlite3.connect('users.db')
+cursor=conn.cursor()
+
+cursor.execute('''CREATE TABLE IF NOT EXISTS users
+                  (id INTEGER PRIMARY KEY, username TEXT UNIQUE, password TEXT)''')
+conn.commit()
 
 def register_user():
     username=username_entry.get()
@@ -8,12 +16,31 @@ def register_user():
 
     if not username or not password or not confirm_password:
         messagebox.showwarning("Error", "All fields must be filled!")
-    elif password != confirm_password:
+    elif password!=confirm_password:
         messagebox.showwarning("Error", "Passwords do not match!")
     else:
-        messagebox.showinfo("Success", f"User {username} registered successfully!")
-        main_window.destroy()
-        
+        try:
+            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+            conn.commit()
+            messagebox.showinfo("Success", f"User {username} registered successfully!")
+            display_users()  
+            main_window.destroy()
+        except sqlite3.IntegrityError:
+            messagebox.showwarning("Error", f"User {username} already exists!")
+
+def display_users():
+    users_window=tk.Toplevel(main_window)
+    users_window.title("Registered Users")
+    users_window.geometry("300x400")
+    users_window.configure(bg="#000000")
+
+    cursor.execute("SELECT username FROM users")
+    users=cursor.fetchall()
+
+    for user in users:
+        user_label=tk.Label(users_window, text=user[0], font=label_font, fg="#ffcc00", bg="#000000")
+        user_label.pack(pady=5)
+
 main_window=tk.Tk()
 main_window.title("Geometry Dash Registration")
 main_window.geometry("500x500")
@@ -55,3 +82,5 @@ register_button=tk.Button(main_window, text="Register", font=(label_font[0], lab
 register_button.pack(pady=50)
 
 main_window.mainloop()
+
+conn.close()
