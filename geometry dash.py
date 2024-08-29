@@ -10,26 +10,30 @@ background = Entity(model='quad', color=color.magenta, scale=100, z=10, y=15)
 camera.orthographic=True
 camera.fov=18
 
-player=Entity(model='quad', collider='box', texture='assets/squre.png', scale=(5, 5, 5))
+player=Entity(model='quad', collider='box', texture='assets/squre.png', scale=(2, 2, 2))
 
-ground=Entity(model='cube', color=color.yellow, y=-1, origin_y=.5, scale=(200, 25, 1), collider='box', texture='white_cube')
+ground=Entity(model='cube', color=color.yellow, y=-1, origin_y=.5, scale=(100, 10, 1), collider='box', texture='white_cube')
+
+bottom_background = Entity(model='quad', color=color.magenta, scale=(100, 20), y=-10, z=9)
+
+
 diam=[]
 plates=[]
-
 score=0
+
 score_text=Text(text=f'Score: {score}', position=(0.7, 0.45), scale=2, color=color.white)
 
 def new(val):
-    new1=Entity(model='diamond', color=color.red, y=1, texture='white_cube', x=val, collider='mesh', scale=(2, 2, 2))
-    new2=duplicate(new1, y=2.35, x=val + 1, scale=0.8)
+    new1=Entity(model='diamond', color=color.red, y=2, texture='white_cube', x=val, collider='mesh', scale=(1, 1, 1))
+    new2=duplicate(new1, y=3.35, x=val + 1, scale=0.6)
 
     diam.extend((new1, new2))
     if val % 60==0:
         for i in range(5):
             e=Entity(model='cube',
                        y=i-0.2, x=val+5+i*15,
-                       scale_x=10,
-                       scale_y=2,
+                       scale_x=5,
+                       scale_y=1,
                        collider='box',
                        color=color.yellow,
                        texture='white_cube')
@@ -42,6 +46,12 @@ def update():
     global score
     for ob in diam:
         ob.x-=20*time.dt
+        if player.intersects(ob).hit:
+            score+=3
+            print(f"Score: {score}")
+            diam.remove(ob)
+            destroy(ob)
+            score_text.text=f'Score: {score}'
     for ob in plates:
         ob.x-=20*time.dt
 
@@ -51,7 +61,7 @@ def update():
         t=player.intersects()
         if t.hit:
             for en in t.entities:
-                if en.color==color.violet:
+                if en.color==color.red:
                     print("You Lose!")
     score+=1
     score_text.text=f'Score: {score}'
@@ -59,7 +69,7 @@ def update():
 def input(key):
     if key=="space":
         if player.intersects().hit:
-            player.animate_y(player.y+10, duration=0.3, curve=curve.out_sine)
+            player.animate_y(player.y+7, duration=0.3, curve=curve.out_sine)
             player.animate_rotation_z(player.rotation_z+180, duration=0.5, curve=curve.linear)
             dust=Entity(model=Circle(), scale=-3, color=color.smoke, position=player.position)
             dust.animate_scale(2, duration=3, curve=curve.linear)
