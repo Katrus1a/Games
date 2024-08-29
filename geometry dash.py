@@ -5,7 +5,7 @@ from ursina import *
 
 app=Ursina()
 
-background=Entity(model='quad', texture='assets/bg.png', scale=100, z=10, y=15)
+background = Entity(model='quad', color=color.magenta, scale=100, z=10, y=15)
 
 camera.orthographic=True
 camera.fov=18
@@ -17,8 +17,8 @@ diam=[]
 plates=[]
 
 def new(val):
-    new1=Entity(model='diamond', color=color.violet, y=1, texture='white_cube', x=val, collider='mesh', scale=(2, 2, 2))
-    new2=duplicate(new1, y=2.35, x=val+1, scale=0.8)
+    new1=Entity(model='diamond', color=color.red, y=1, texture='white_cube', x=val, collider='mesh', scale=(2, 2, 2))
+    new2=duplicate(new1, y=2.35, x=val + 1, scale=0.8)
 
     diam.extend((new1, new2))
     if val % 60==0:
