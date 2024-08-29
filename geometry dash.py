@@ -16,6 +16,9 @@ ground=Entity(model='cube', color=color.yellow, y=-1, origin_y=.5, scale=(200, 2
 diam=[]
 plates=[]
 
+score=0
+score_text=Text(text=f'Score: {score}', position=(0.7, 0.45), scale=2, color=color.white)
+
 def new(val):
     new1=Entity(model='diamond', color=color.red, y=1, texture='white_cube', x=val, collider='mesh', scale=(2, 2, 2))
     new2=duplicate(new1, y=2.35, x=val + 1, scale=0.8)
@@ -36,6 +39,7 @@ def new(val):
 new(30)
 
 def update():
+    global score
     for ob in diam:
         ob.x-=20*time.dt
     for ob in plates:
@@ -49,6 +53,8 @@ def update():
             for en in t.entities:
                 if en.color==color.violet:
                     print("You Lose!")
+    score+=1
+    score_text.text=f'Score: {score}'
 
 def input(key):
     if key=="space":
