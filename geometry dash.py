@@ -5,39 +5,45 @@ from ursina import *
 
 app=Ursina()
 
-background = Entity(model='quad', color=color.magenta, scale=100, z=10, y=15)
+background=Entity(model='quad', color=color.magenta, scale=100, z=10, y=15)
 
 camera.orthographic=True
 camera.fov=18
 
 player=Entity(model='quad', collider='box', texture='assets/squre.png', scale=(2, 2, 2))
 
-ground=Entity(model='cube', color=color.yellow, y=-1, origin_y=.5, scale=(100, 10, 1), collider='box', texture='white_cube')
+ground=Entity(model='cube', color=color.yellow, y=-1, origin_y=.5, scale=(100, 10, 1), collider='box',texture='white_cube')
 
-bottom_background = Entity(model='quad', color=color.magenta, scale=(100, 20), y=-10, z=9)
-
+bottom_background=Entity(model='quad', color=color.magenta, scale=(100, 20), y=-10, z=9)
 
 diam=[]
 plates=[]
+obstacles=[]
 score=0
 
 score_text=Text(text=f'Score: {score}', position=(0.7, 0.45), scale=2, color=color.white)
 
 def new(val):
     new1=Entity(model='diamond', color=color.red, y=2, texture='white_cube', x=val, collider='mesh', scale=(1, 1, 1))
-    new2=duplicate(new1, y=3.35, x=val + 1, scale=0.6)
+    new2=duplicate(new1, y=3.35, x=val+1, scale=0.6)
 
     diam.extend((new1, new2))
+
     if val % 60==0:
         for i in range(5):
             e=Entity(model='cube',
-                       y=i-0.2, x=val+5+i*15,
+                       y=i - 0.2, x=val+5+i*15,
                        scale_x=5,
                        scale_y=1,
                        collider='box',
                        color=color.yellow,
                        texture='white_cube')
             plates.append(e)
+
+    if val % 20==0:
+        obs=Entity(model='quad', color=color.red, scale=(1, 3), x=val, y=-1, collider='box', texture='white_cube')
+        obstacles.append(obs)
+
     invoke(new, val=val+10, delay=1)
 
 new(30)
@@ -52,17 +58,26 @@ def update():
             diam.remove(ob)
             destroy(ob)
             score_text.text=f'Score: {score}'
+
     for ob in plates:
         ob.x-=20*time.dt
 
+    for ob in obstacles:
+        ob.x-=20*time.dt
+        if player.intersects(ob).hit:
+            print("You Lose!")
+            destroy(player)
+
     if not player.intersects().hit:
-        player.y-=20*time.dt
+        player.y-=25*time.dt
         player.y=max(-5, player.y)
         t=player.intersects()
         if t.hit:
             for en in t.entities:
                 if en.color==color.red:
                     print("You Lose!")
+                    return
+
     score+=1
     score_text.text=f'Score: {score}'
 
@@ -75,8 +90,8 @@ def input(key):
             dust.animate_scale(2, duration=3, curve=curve.linear)
             dust.fade_out(duration=1)
 
-app.run()
 
+app.run()
 
 # conn=sqlite3.connect('users.db')
 # cursor=conn.cursor()
