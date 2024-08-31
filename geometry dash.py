@@ -27,18 +27,22 @@ def start_game():
         new2=duplicate(new1, y=3.35, x=val+1, scale=0.6)
         diam.extend((new1, new2))
 
-        if val % 60==0:
+        if val%60==0:
             for i in range(5):
                 e=Entity(model='cube', y=i-0.2, x=val+5+i*15, scale_x=5, scale_y=1, collider='box', color=color.yellow, texture='white_cube')
                 plates.append(e)
 
-        if val % 20==0:
+        if val%20==0:
             obs=Entity(model='quad', color=color.red, scale=(1, 3), x=val, y=-1, collider='box', texture='white_cube')
             obstacles.append(obs)
 
         invoke(new, val=val+10, delay=1)
 
     new(30)
+
+    def start_player_movement():
+        player.animate_y(player.y+7, duration=0.3, curve=curve.out_sine)
+        player.animate_rotation_z(player.rotation_z+180, duration=0.5, curve=curve.linear)
 
     def update():
         nonlocal score, is_game_over
@@ -47,7 +51,7 @@ def start_game():
         for ob in diam:
             ob.x-=20*time.dt
             if player.intersects(ob).hit:
-                score+=3
+                score +=3
                 print(f"Score: {score}")
                 diam.remove(ob)
                 destroy(ob)
@@ -77,7 +81,7 @@ def start_game():
                         is_game_over=True
                         return
 
-        score+=1
+        score +=1
         score_text.text=f'Score: {score}'
 
     def input(key):
@@ -115,6 +119,7 @@ def start_game():
             game_over_text=None
 
         new(30)
+        start_player_movement()
 
     def exit_game():
         app.userExit()
@@ -122,12 +127,14 @@ def start_game():
     def show_game_over_message():
         nonlocal game_over_text
         game_over_text=Text(
-            text="Вы проиграли!\nНажмите 'R' чтобы перезапустить игру или 'Escape' чтобы выйти.",
+            text="You lose!\nPress 'R' to restart the game or 'Escape' to exit.",
             origin=(0, 0),
             scale=2,
             color=color.white,
             position=(0, 0)
         )
+
+    start_player_movement()
 
     app.run()
 
@@ -146,34 +153,32 @@ def register_user():
 
     if not username or not password or not confirm_password:
         messagebox.showwarning("Error", "All fields must be filled!")
-    elif password != confirm_password:
+    elif password !=confirm_password:
         messagebox.showwarning("Error", "Passwords do not match!")
     else:
         try:
-            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
+            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?,)", (username, password))
             conn.commit()
             messagebox.showinfo("Success", f"User {username} registered successfully!")
-            display_users()
-            main_window.destroy()
-            start_game()
+            main_window.after(100, lambda: (main_window.destroy(), start_game()))
         except sqlite3.IntegrityError:
             messagebox.showwarning("Error", f"User {username} already exists!")
 
-def display_users():
-    users_window=tk.Toplevel(main_window)
-    users_window.title("Registered Users")
-    users_window.geometry("300x400")
-    users_window.configure(bg="#000000")
+def login_user():
+    username=username_entry.get()
+    password=password_entry.get()
 
-    cursor.execute("SELECT username FROM users")
-    users=cursor.fetchall()
+    cursor.execute("SELECT*FROM users WHERE username=? AND password=?", (username, password))
+    user=cursor.fetchone()
 
-    for user in users:
-        user_label=tk.Label(users_window, text=user[0], font=label_font, fg="#ffcc00", bg="#000000")
-        user_label.pack(pady=5)
+    if user:
+        messagebox.showinfo("Success", f"User {username} logged in successfully!")
+        main_window.after(100, lambda: (main_window.destroy(), start_game()))
+    else:
+        messagebox.showwarning("Error", "Incorrect username or password!")
 
 main_window=tk.Tk()
-main_window.title("Geometry Dash Registration")
+main_window.title("Geometry Dash Login/Registration")
 main_window.geometry("500x500")
 main_window.configure(bg="#000000")
 
@@ -193,7 +198,7 @@ def create_label(text, color, bg_color, root, font, center=False):
         label.pack(anchor='w', padx=50, pady=5)
     return label
 
-create_label("Registration", "#ffcc00", "#000000", main_window, title_font, center=True)
+create_label("Login/Registration", "#ffcc00", "#000000", main_window, title_font, center=True)
 
 create_label("Username:", "#00ff66", "#000000", main_window, label_font)
 username_entry=tk.Entry(main_window, font=label_font, bg=entry_bg, fg=entry_fg)
@@ -203,14 +208,17 @@ create_label("Password:", "#31f2f5", "#000000", main_window, label_font)
 password_entry=tk.Entry(main_window, show="*", font=label_font, bg=entry_bg, fg=entry_fg)
 password_entry.pack(pady=10, padx=50, fill='x')
 
-create_label("Confirm Password:", "#6851fc", "#000000", main_window, label_font)
-confirm_password_entry=tk.Entry(main_window, show="*", font=label_font, bg=entry_bg, fg=entry_fg)
-confirm_password_entry.pack(pady=10, padx=50, fill='x')
+confirm_password_entry=None
 
 register_button=tk.Button(main_window, text="Register", font=(label_font[0], label_font[1], 'bold'),
                             bg=button_bg, fg=button_fg, command=register_user, width=20,
                             highlightbackground=outline_fg, highlightthickness=2)
-register_button.pack(pady=50)
+register_button.pack(pady=10)
+
+login_button=tk.Button(main_window, text="Login", font=(label_font[0], label_font[1], 'bold'),
+                         bg=button_bg, fg=button_fg, command=login_user, width=20,
+                         highlightbackground=outline_fg, highlightthickness=2)
+login_button.pack(pady=10)
 
 main_window.mainloop()
 
