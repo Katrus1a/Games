@@ -51,7 +51,7 @@ def start_game():
         for ob in diam:
             ob.x-=20*time.dt
             if player.intersects(ob).hit:
-                score +=3
+                score+=3
                 print(f"Score: {score}")
                 diam.remove(ob)
                 destroy(ob)
@@ -81,7 +81,7 @@ def start_game():
                         is_game_over=True
                         return
 
-        score +=1
+        score+=1
         score_text.text=f'Score: {score}'
 
     def input(key):
@@ -138,10 +138,8 @@ def start_game():
 
     app.run()
 
-
 conn=sqlite3.connect('users.db')
 cursor=conn.cursor()
-
 cursor.execute('''CREATE TABLE IF NOT EXISTS users
                   (id INTEGER PRIMARY KEY, username TEXT UNIQUE, password TEXT)''')
 conn.commit()
@@ -153,14 +151,15 @@ def register_user():
 
     if not username or not password or not confirm_password:
         messagebox.showwarning("Error", "All fields must be filled!")
-    elif password !=confirm_password:
+    elif password != confirm_password:
         messagebox.showwarning("Error", "Passwords do not match!")
     else:
         try:
-            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?,)", (username, password))
+            cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
             conn.commit()
             messagebox.showinfo("Success", f"User {username} registered successfully!")
-            main_window.after(100, lambda: (main_window.destroy(), start_game()))
+            main_window.after(100, lambda: main_window.destroy())
+            start_game()
         except sqlite3.IntegrityError:
             messagebox.showwarning("Error", f"User {username} already exists!")
 
@@ -173,7 +172,8 @@ def login_user():
 
     if user:
         messagebox.showinfo("Success", f"User {username} logged in successfully!")
-        main_window.after(100, lambda: (main_window.destroy(), start_game()))
+        main_window.after(100, lambda: main_window.destroy())
+        start_game()
     else:
         messagebox.showwarning("Error", "Incorrect username or password!")
 
@@ -208,16 +208,14 @@ create_label("Password:", "#31f2f5", "#000000", main_window, label_font)
 password_entry=tk.Entry(main_window, show="*", font=label_font, bg=entry_bg, fg=entry_fg)
 password_entry.pack(pady=10, padx=50, fill='x')
 
-confirm_password_entry=None
+create_label("Confirm Password:", "#ff3333", "#000000", main_window, label_font)
+confirm_password_entry=tk.Entry(main_window, show="*", font=label_font, bg=entry_bg, fg=entry_fg)
+confirm_password_entry.pack(pady=10, padx=50, fill='x')
 
-register_button=tk.Button(main_window, text="Register", font=(label_font[0], label_font[1], 'bold'),
-                            bg=button_bg, fg=button_fg, command=register_user, width=20,
-                            highlightbackground=outline_fg, highlightthickness=2)
+register_button=tk.Button(main_window, text="Register", font=(label_font[0], label_font[1], 'bold'), bg=button_bg, fg=button_fg, command=register_user, width=20, highlightbackground=outline_fg, highlightthickness=2)
 register_button.pack(pady=10)
 
-login_button=tk.Button(main_window, text="Login", font=(label_font[0], label_font[1], 'bold'),
-                         bg=button_bg, fg=button_fg, command=login_user, width=20,
-                         highlightbackground=outline_fg, highlightthickness=2)
+login_button=tk.Button(main_window, text="Login", font=(label_font[0], label_font[1], 'bold'), bg=button_bg, fg=button_fg, command=login_user, width=20, highlightbackground=outline_fg, highlightthickness=2)
 login_button.pack(pady=10)
 
 main_window.mainloop()
